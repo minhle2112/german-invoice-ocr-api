@@ -1,5 +1,5 @@
 from fastapi import FastAPI, UploadFile, File
-from services.ocr_service import extract_text_from_image
+from services.ocr_service import extract_text_from_file
 from services.invoice_parser import parse_invoice
 
 app = FastAPI(title="German Invoice OCR API")
@@ -12,7 +12,7 @@ def home():
 async def extract_invoice(file: UploadFile = File(...)):
     contents = await file.read()
 
-    text = extract_text_from_image(contents)
+    text = extract_text_from_file(contents, file.filename)
 
     try:
         data = parse_invoice(text)
