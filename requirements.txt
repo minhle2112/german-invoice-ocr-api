@@ -3,4 +3,6 @@ uvicorn
 python-multipart
 pytesseract
 pillow
-request
+requests
+pymupdf
+lxml
