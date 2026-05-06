@@ -1,129 +1,147 @@
-# 🇩🇪 German Invoice OCR API
+# German Invoice OCR API
 
-Simple API to extract invoice data (net, gross, VAT) using OCR + AI.
+API for German invoice extraction, EN16931 validation, and ZUGFeRD/Factur-X CII XML generation/parsing.
 
----
+## Features
 
-## 🚀 Setup
+- Extract invoice data from images/PDFs with OCR + AI.
+- Generate ZUGFeRD/Factur-X CII XML from structured invoice JSON.
+- Validate invoice totals against basic EN16931 business rules.
+- Validate generated CII XML against the local UNECE D22B XSD schema set.
+- Parse CII XML or ZUGFeRD/Factur-X PDFs with embedded XML back to JSON.
 
-Clone repository:
-
-```bash
-git clone <your-repo-url>
-cd german-invoice-ocr-api
-```
-
-Install Python dependencies:
+## Setup
 
 ```bash
 pip install -r requirements.txt
 ```
 
----
+Install Tesseract OCR if you want to use `/api/v1/invoices/extract`.
 
-## 🧠 Install OCR (Tesseract)
-
-### Windows
-
-Download Tesseract:
-👉 https://github.com/UB-Mannheim/tesseract/wiki
-
-Install and note path (example):
+Windows builds are available here:
 
 ```text
-C:\Program Files\Tesseract-OCR\tesseract.exe
+https://github.com/UB-Mannheim/tesseract/wiki
 ```
 
-Add to PATH **or** set in code:
-
-```python
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-```
-
----
-
-## 🤖 Install AI (Ollama)
-
-### Install Ollama
-
-```bash
-# Windows (PowerShell)
-irm https://ollama.com/install.ps1 | iex
-```
-
-### Pull model
-
-```bash
-ollama pull qwen3:8b
-```
-
-Alternative (lighter):
-
-```bash
-ollama pull phi3
-```
-
----
-
-## ▶️ Run server
+Run the API:
 
 ```bash
 uvicorn main:app --reload
 ```
 
-Server will run at:
-
-```text
-http://127.0.0.1:8000
-```
-
----
-
-## 🧪 Test API
-
-### Swagger UI
+Swagger UI:
 
 ```text
 http://127.0.0.1:8000/docs
 ```
 
-### Curl
+Health check:
 
 ```bash
-curl -X POST "http://127.0.0.1:8000/extract-invoice" \
-  -H "accept: application/json" \
-  -H "Content-Type: multipart/form-data" \
-  -F "file=@invoice.png"
+curl http://127.0.0.1:8000/health
 ```
 
----
+## Response Format
 
-## 📦 Output example
+JSON endpoints return a consistent envelope:
 
 ```json
 {
-  "net_total": 262.99,
-  "gross_total": 312.96,
-  "vat_amount": 49.97,
-  "vat_rate": 19,
-  "currency": "EUR"
+  "success": true,
+  "data": {},
+  "errors": [],
+  "meta": {}
 }
 ```
 
----
+Validation errors use the same format with `success: false`.
 
-## ⚙️ Requirements
+The XML generation endpoint returns `application/xml` directly.
 
-* Python 3.10+
-* Tesseract OCR
-* Ollama (local LLM)
+## Endpoints
 
----
+### Extract Invoice From File
 
-## 🧠 Notes
+```text
+POST /api/v1/invoices/extract
+```
 
-* Currency is normalized to `EUR`
-* Hybrid approach: **OCR + regex + AI**
-* Works best with German invoices
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/invoices/extract \
+  -F "file=@invoice.pdf"
+```
 
----
+### Generate ZUGFeRD CII XML
+
+```text
+POST /api/v1/zugferd/xml
+```
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/zugferd/xml \
+  -H "Content-Type: application/json" \
+  --data-binary "@examples/invoice.json" \
+  -o invoice.xml
+```
+
+### Validate EN16931 Business Rules
+
+```text
+POST /api/v1/en16931/validate
+```
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/en16931/validate \
+  -H "Content-Type: application/json" \
+  --data-binary "@examples/invoice.json"
+```
+
+### Validate Generated ZUGFeRD XML Against XSD
+
+```text
+POST /api/v1/zugferd/validate-xsd
+```
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/zugferd/validate-xsd \
+  -H "Content-Type: application/json" \
+  --data-binary "@examples/invoice.json"
+```
+
+### Parse XML/PDF To JSON
+
+```text
+POST /api/v1/zugferd/parse
+```
+
+Accepts either a raw CII XML file or a ZUGFeRD/Factur-X PDF with embedded XML.
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/zugferd/parse \
+  -F "file=@invoice.xml"
+```
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/zugferd/parse \
+  -F "file=@invoice.pdf"
+```
+
+## XSD Schemas
+
+The XSD validator expects the complete UNECE D22B CII schema package in `schemas/`.
+
+Required root file:
+
+```text
+schemas/CrossIndustryInvoice_100pD22B.xsd
+```
+
+The imported codelist and identifierlist XSD files must be in the same folder.
+
+## Notes
+
+- When parsing XML to JSON, missing `InvoiceCurrencyCode` and `CountryID` are returned as `null`.
+- When generating XML from JSON, missing or placeholder `currency` falls back to `EUR`.
+- When generating XML from JSON, missing or placeholder `country_id` falls back to `DE`.
+- Legacy routes still exist but are hidden from Swagger.

@@ -1,0 +1,63 @@
+{
+  "invoice": {
+    "number": "INV-2026-001",
+    "issue_date": "2026-05-06",
+    "delivery_date": "2026-05-06",
+    "due_date": "2026-05-20",
+    "currency": "EUR"
+  },
+  "seller": {
+    "name": "Seller GmbH",
+    "vat_id": "DE123456789",
+    "address": {
+      "postcode": "10115",
+      "line_one": "Seller Str. 1",
+      "city": "Berlin",
+      "country_id": "DE"
+    },
+    "contact": null
+  },
+  "buyer": {
+    "name": "Buyer GmbH",
+    "vat_id": null,
+    "address": {
+      "postcode": "80331",
+      "line_one": "Buyer Str. 2",
+      "city": "Munich",
+      "country_id": "DE"
+    },
+    "contact": null
+  },
+  "payment": {
+    "iban": "DE89370400440532013000",
+    "bic": "COBADEFFXXX"
+  },
+  "payment_terms": {
+    "description": "Payment due within 14 days."
+  },
+  "totals": {
+    "tax_exclusive_amount": "100.00",
+    "tax_inclusive_amount": "119.00",
+    "tax_amount": "19.00",
+    "payable_amount": "119.00"
+  },
+  "lines": [
+    {
+      "id": "1",
+      "name": "Consulting service",
+      "quantity": "1.0000",
+      "unit_code": "C62",
+      "net_price": "100.0000",
+      "line_net_amount": "100.00",
+      "tax_rate": "19.00"
+    }
+  ],
+  "tax_breakdowns": [
+    {
+      "category_code": "S",
+      "rate": "19.00",
+      "basis_amount": "100.00",
+      "calculated_amount": "19.00"
+    }
+  ]
+}
